@@ -1,0 +1,82 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: webconf
+data:
+  cadr: "wss://gmf6or0yef.execute-api.us-east-1.amazonaws.com/production"
+  cdelay: "6000"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: default
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      run: web
+  template:
+    metadata:
+      labels:
+        run: web
+    spec:
+      containers:
+      - image: alik116/juniqe_pingpong:latest
+        imagePullPolicy: Always
+        name: web
+        command: ["node", "/app/c.js"]
+        env:
+        - name: NJ_ADDRESS
+          valueFrom:
+            configMapKeyRef:
+              name: webconf
+              key: cadr
+        - name: NJ_DELAY
+          valueFrom:
+            configMapKeyRef:
+              name: webconf
+              key: cdelay
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: lbs
+  name: lbs
+spec:
+  ports:
+  - name: 80-80
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    run: web
+  type: LoadBalancer
+status:
+  loadBalancer: {}
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  creationTimestamp: null
+  name: web
+spec:
+  maxReplicas: 5
+  minReplicas: 2
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: web
+  targetCPUUtilizationPercentage: 80

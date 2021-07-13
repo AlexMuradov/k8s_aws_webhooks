@@ -1,0 +1,39 @@
+include:
+  - template: Terraform.gitlab-ci.yml
+
+variables:
+  # If not using GitLab's HTTP backend, remove this line and specify TF_HTTP_* variables
+  TF_STATE_NAME: default
+  TF_CACHE_KEY: default
+  # If your terraform files are in a subdirectory, set TF_ROOT accordingly
+  # TF_ROOT: terraform/production
+
+stages:
+  - build
+  - deploy
+
+docker-build:
+  # Use the official docker image.
+  image: docker:latest
+  stage: build
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+  # Default branch leaves tag empty (= latest tag)
+  # All other branches are tagged with the escaped branch name (commit ref slug)
+  script:
+    - docker build --pull -t "$CI_REGISTRY_IMAGE${tag}" .
+    - docker push "$CI_REGISTRY_IMAGE${tag}"
+    - echo "$CI_REGISTRY_IMAGE${tag}"
+
+deploy-prod:
+  stage: deploy
+  image: 
+    name: bitnami/kubectl:1.15
+    entrypoint: [""]
+  script:
+    - kubectl apply -f deployment.yml
+    - kubectl rollout restart deployment dep1
+  environment:
+    name: production

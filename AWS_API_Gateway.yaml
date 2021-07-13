@@ -1,0 +1,100 @@
+AWSTemplateFormatVersion: 2010-09-09
+Metadata:
+  'AWS::CloudFormation::Designer':
+    16d78d47-ed15-4088-8e4f-ac0355dfd358:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 610
+        'y': 80
+      z: 0
+      embeds: []
+    0e4d2f9a-5869-4809-90e7-451be8f5dc03:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 740
+        'y': 80
+      z: 0
+      embeds: []
+    4a6b8ae3-7285-4f3b-aac0-28d04ec2254d:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 880
+        'y': 80
+      z: 0
+      embeds: []
+      dependson:
+        - 0e4d2f9a-5869-4809-90e7-451be8f5dc03
+    3e528e55-891b-4249-a9a8-26361a84b8cc:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 1010
+        'y': 80
+      z: 0
+      embeds: []
+    3ce19930-97f0-494a-a820-93c0a0da6aaf:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 994.196696810097
+        'y': 162.69860883251806
+      z: 0
+      embeds: []
+      dependson:
+        - 3e528e55-891b-4249-a9a8-26361a84b8cc
+Resources:
+  AGV2A2MTN9:
+    Type: 'AWS::ApiGatewayV2::Api'
+    Properties:
+      Name: myWebsocket
+      ProtocolType: WEBSOCKET
+      RouteSelectionExpression: $request.body.action
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 16d78d47-ed15-4088-8e4f-ac0355dfd358
+  AGV2R26RYX:
+    Type: 'AWS::ApiGatewayV2::Route'
+    Properties:
+      ApiId: !Ref AGV2A2MTN9
+      RouteKey: $default
+      AuthorizationType: NONE
+      Target: !Join 
+        - /
+        - - integrations
+          - !Ref AGV2I4CV23
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 0e4d2f9a-5869-4809-90e7-451be8f5dc03
+  AGV2I4CV23:
+    Type: 'AWS::ApiGatewayV2::Integration'
+    Properties:
+      ApiId: !Ref AGV2A2MTN9
+      IntegrationType: MOCK
+      TemplateSelectionExpression: '200'
+      RequestTemplates:
+        '200': '{"statusCode": 200}'
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 4a6b8ae3-7285-4f3b-aac0-28d04ec2254d
+  AGV2IRBYQI:
+    Type: 'AWS::ApiGatewayV2::IntegrationResponse'
+    Properties:
+      ApiId: !Ref AGV2A2MTN9
+      IntegrationId: !Ref AGV2I4CV23
+      IntegrationResponseKey: $default
+      TemplateSelectionExpression: 200
+      ResponseTemplates:
+        '200': '{"statusCode": 200, "connectionId": $context.connectionId}'
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 3e528e55-891b-4249-a9a8-26361a84b8cc
+    DependsOn:
+      - AGV2I4CV23
